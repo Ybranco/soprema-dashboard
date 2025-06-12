@@ -1,0 +1,18 @@
+{
+  "deploymentDate": "2025-06-11T21:11:00-04:00",
+  "version": "2.0",
+  "backupLocation": "./backups",
+  "rollbackScript": "./backups/rollback_20250611_211100.sh",
+  "status": "deployed",
+  "files": {
+    "HYBRID_SCORING_METHOD.js": "present",
+    "OPTIMIZED_SCORING_ALGORITHM.js": "present",
+    "test-hybrid-scoring.js": "present",
+    "server-hybrid.js": "created"
+  },
+  "sopremaDatabase": {
+    "file": "Produits_Soprema_France_Final.json",
+    "exists": true,
+    "size": " 1750380 bytes"
+  }
+}

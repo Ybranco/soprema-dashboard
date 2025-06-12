@@ -1,0 +1,200 @@
+import React from 'react';
+import { Wrapper } from '@googlemaps/react-wrapper';
+import { GoogleMapComponent } from '../maps/GoogleMapComponent';
+import { Tooltip } from '../common/Tooltip';
+import { MapPinIcon } from '@heroicons/react/24/outline';
+import { useDashboardStore } from '../../store/dashboardStore';
+
+interface GeographicMapProps {
+  opportunities?: any[]; // Optionnel, on va utiliser le store
+}
+
+export const GeographicMap: React.FC<GeographicMapProps> = () => {
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const { getGeographicOpportunities } = useDashboardStore();
+  
+  // Récupérer les opportunités géographiques avec plans d'action du store
+  const opportunities = getGeographicOpportunities();
+
+  const tooltipContent = (
+    <div>
+      <p>Cette carte montre vos opportunités commerciales avec les plans d'action géographiques générés par Claude 3.5 Sonnet.</p>
+      
+      <div className="mt-4">
+        <h4 className="font-semibold text-base mb-2">Comment lire cette carte</h4>
+        <ul className="list-disc list-inside space-y-1 text-sm">
+          <li>🟢 Point vert : Plan d'action géographique disponible</li>
+          <li>🔵 Point bleu : Analyse en cours</li>
+          <li>🎯 Icône cible : Plan d'action complet accessible</li>
+          <li>Cliquez sur un point pour voir les détails et le plan</li>
+        </ul>
+      </div>
+      
+      <div className="mt-4">
+        <h4 className="font-semibold text-base mb-2">Plans d'action Claude 3.5 Sonnet</h4>
+        <ul className="list-disc list-inside space-y-1 text-sm">
+          <li>Analyse du contexte géographique et économique local</li>
+          <li>Stratégie commerciale adaptée à la région</li>
+          <li>Actions concrètes avec responsables et échéances</li>
+          <li>Métriques de succès et budget estimé</li>
+        </ul>
+      </div>
+      
+      <div className="mt-4 p-3 bg-gray-50 rounded-lg border-l-3 border-blue-600">
+        <strong>Innovation :</strong> Chaque facture analysée génère automatiquement un plan d'action géographique personnalisé par Claude 3.5 Sonnet.
+      </div>
+    </div>
+  );
+
+  const LoadingComponent = () => (
+    <div className="w-full h-80 bg-gradient-to-b from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-blue-700">Chargement de la carte...</p>
+      </div>
+    </div>
+  );
+
+  const ErrorComponent = () => (
+    <div className="w-full h-80 bg-gradient-to-b from-red-100 to-red-200 rounded-lg flex items-center justify-center">
+      <div className="text-center p-6">
+        <div className="text-red-600 mb-4">
+          <MapPinIcon className="w-12 h-12 mx-auto" />
+        </div>
+        <h3 className="text-lg font-semibold text-red-800 mb-2">
+          Carte non disponible
+        </h3>
+        <p className="text-red-700 text-sm mb-4">
+          Clé API Google Maps manquante ou invalide
+        </p>
+        <div className="text-xs text-red-600 bg-red-50 p-3 rounded border">
+          <p>Pour activer Google Maps :</p>
+          <ol className="list-decimal list-inside mt-2 space-y-1">
+            <li>Obtenez une clé API sur Google Cloud Console</li>
+            <li>Activez l'API "Maps JavaScript API"</li>
+            <li>Ajoutez VITE_GOOGLE_MAPS_API_KEY dans votre fichier .env</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  );
+
+  const EmptyMapComponent = () => (
+    <div className="w-full h-80 bg-gradient-to-b from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+      <div className="text-center p-6">
+        <div className="text-gray-400 mb-4">
+          <MapPinIcon className="w-12 h-12 mx-auto" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          Aucune opportunité géographique
+        </h3>
+        <p className="text-gray-600 text-sm mb-4">
+          Les plans d'action géographiques s'afficheront après l'analyse des factures
+        </p>
+        <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded border">
+          <p>🎯 Chaque facture analysée génère automatiquement :</p>
+          <ul className="list-disc list-inside mt-2 space-y-1">
+            <li>Un plan d'action géographique par Claude 3.5 Sonnet</li>
+            <li>Une stratégie commerciale locale adaptée</li>
+            <li>Des actions concrètes avec échéances</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMap = (status: any) => {
+    switch (status) {
+      case 'LOADING':
+        return <LoadingComponent />;
+      case 'FAILURE':
+        return <ErrorComponent />;
+      case 'SUCCESS':
+        return opportunities.length > 0 ? (
+          <GoogleMapComponent 
+            opportunities={opportunities} 
+            apiKey={googleMapsApiKey}
+          />
+        ) : (
+          <EmptyMapComponent />
+        );
+      default:
+        return <LoadingComponent />;
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-md border border-gray-200">
+      <div className="p-6 border-b border-gray-200 bg-gray-50 rounded-t-xl">
+        <div className="flex items-center gap-3">
+          <MapPinIcon className="w-6 h-6 text-blue-600" />
+          <h3 className="text-lg font-semibold text-gray-900">
+            Plans d'Action Géographiques
+          </h3>
+          <Tooltip content={tooltipContent} title="Plans d'action géographiques" />
+        </div>
+      </div>
+      
+      <div className="p-6">
+        <div className="relative w-full h-80 rounded-lg overflow-hidden">
+          {googleMapsApiKey ? (
+            <Wrapper
+              apiKey={googleMapsApiKey}
+              render={renderMap}
+              libraries={['places', 'marker']}
+            />
+          ) : (
+            <ErrorComponent />
+          )}
+          
+          {/* Légende enrichie */}
+          {opportunities.length > 0 && (
+            <div className="absolute bottom-4 right-4 bg-white bg-opacity-95 p-3 rounded-lg shadow-md border border-gray-200">
+              <div className="text-xs font-medium text-gray-700 mb-2">Plans d'Action</div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <div className="w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                  <span>Avec plan Claude 3.5</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <div className="w-4 h-4 bg-blue-600 rounded-full border-2 border-white"></div>
+                  <span>En cours d'analyse</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                  <span>🎯</span>
+                  <span>Plan accessible</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Statistiques enrichies */}
+        <div className="mt-4 grid grid-cols-4 gap-4 text-center">
+          <div className="bg-blue-50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-blue-600">{opportunities.length}</div>
+            <div className="text-xs text-blue-700">Régions</div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-green-600">
+              {opportunities.filter(opp => opp.actionPlan).length}
+            </div>
+            <div className="text-xs text-green-700">Plans actifs</div>
+          </div>
+          <div className="bg-purple-50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-purple-600">
+              {opportunities.reduce((acc, opp) => acc + opp.clients, 0)}
+            </div>
+            <div className="text-xs text-purple-700">Clients</div>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-orange-600">
+              {Math.floor(opportunities.reduce((acc, opp) => acc + opp.amount, 0) / 1000)}K€
+            </div>
+            <div className="text-xs text-orange-700">Potentiel</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

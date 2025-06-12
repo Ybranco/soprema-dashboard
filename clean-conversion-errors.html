@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nettoyage des erreurs de conversion - Soprema Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        .warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #92400e;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1e40af;
+        }
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button.danger {
+            background: #ef4444;
+        }
+        button.danger:hover {
+            background: #dc2626;
+        }
+        button.success {
+            background: #10b981;
+        }
+        button.success:hover {
+            background: #059669;
+        }
+        .error-list {
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error-item {
+            padding: 10px;
+            border-bottom: 1px solid #fcc;
+            font-size: 0.9em;
+        }
+        .error-item:last-child {
+            border-bottom: none;
+        }
+        .success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #065f46;
+        }
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .data-view {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .data-view h3 {
+            margin-top: 0;
+            color: #374151;
+        }
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Nettoyage des erreurs de conversion PDF</h1>
+        <p>Cet outil permet de nettoyer les produits "Document PDF - conversion alternative" stockés dans localStorage.</p>
+        
+        <div class="warning">
+            <strong>⚠️ Attention:</strong> Cette action va modifier les données stockées localement. 
+            Assurez-vous de faire une sauvegarde si nécessaire.
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalInvoices">0</div>
+                <div class="stat-label">Factures totales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="errorProducts">0</div>
+                <div class="stat-label">Produits erronés</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="affectedInvoices">0</div>
+                <div class="stat-label">Factures affectées</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="errorAmount">0€</div>
+                <div class="stat-label">Montant erroné</div>
+            </div>
+        </div>
+
+        <div id="errorList" class="error-list" style="display: none;">
+            <h3>Produits erronés détectés:</h3>
+            <div id="errorItems"></div>
+        </div>
+
+        <div class="button-group">
+            <button onclick="analyzeData()">📊 Analyser les données</button>
+            <button onclick="previewCleanup()" class="success">👁️ Prévisualiser le nettoyage</button>
+            <button onclick="cleanData()" class="danger">🗑️ Nettoyer les erreurs</button>
+            <button onclick="exportBackup()">💾 Exporter une sauvegarde</button>
+        </div>
+
+        <div id="preview" class="before-after" style="display: none;">
+            <div class="data-view">
+                <h3>Avant nettoyage</h3>
+                <pre id="beforeData"></pre>
+            </div>
+            <div class="data-view">
+                <h3>Après nettoyage</h3>
+                <pre id="afterData"></pre>
+            </div>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'soprema-dashboard-v2-storage';
+
+        function getStoredData() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (!data) return null;
+            
+            try {
+                const parsed = JSON.parse(data);
+                return parsed.state || parsed;
+            } catch (e) {
+                console.error('Erreur parsing localStorage:', e);
+                return null;
+            }
+        }
+
+        function analyzeData() {
+            const data = getStoredData();
+            if (!data || !data.invoices) {
+                document.getElementById('result').innerHTML = 
+                    '<div class="warning">Aucune donnée trouvée dans localStorage</div>';
+                return;
+            }
+
+            let errorProducts = 0;
+            let affectedInvoices = 0;
+            let errorAmount = 0;
+            const errorItems = [];
+
+            data.invoices.forEach(invoice => {
+                let hasError = false;
+                
+                invoice.products.forEach(product => {
+                    const isError = 
+                        (product.designation && product.designation.includes('conversion alternative')) ||
+                        (product.reference && product.reference.includes('conversion alternative')) ||
+                        (product.description && product.description.includes('conversion alternative'));
+                    
+                    if (isError) {
+                        errorProducts++;
+                        errorAmount += product.totalPrice || 0;
+                        hasError = true;
+                        
+                        errorItems.push({
+                            invoice: invoice.number,
+                            client: invoice.client.name,
+                            product: product.designation || product.reference,
+                            amount: product.totalPrice || 0
+                        });
+                    }
+                });
+                
+                if (hasError) affectedInvoices++;
+            });
+
+            // Mise à jour des stats
+            document.getElementById('totalInvoices').textContent = data.invoices.length;
+            document.getElementById('errorProducts').textContent = errorProducts;
+            document.getElementById('affectedInvoices').textContent = affectedInvoices;
+            document.getElementById('errorAmount').textContent = errorAmount.toLocaleString('fr-FR', {
+                style: 'currency',
+                currency: 'EUR'
+            });
+
+            // Affichage de la liste des erreurs
+            if (errorProducts > 0) {
+                document.getElementById('errorList').style.display = 'block';
+                document.getElementById('errorItems').innerHTML = errorItems.map(item => `
+                    <div class="error-item">
+                        <strong>Facture ${item.invoice}</strong> - ${item.client}<br>
+                        Produit: ${item.product}<br>
+                        Montant: ${item.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('result').innerHTML = errorProducts > 0 ? 
+                `<div class="warning">⚠️ ${errorProducts} produits erronés trouvés dans ${affectedInvoices} factures</div>` :
+                '<div class="success">✅ Aucun produit erroné détecté</div>';
+        }
+
+        function isConversionError(product) {
+            const text = [
+                product.designation || '',
+                product.reference || '',
+                product.description || '',
+                product.name || ''
+            ].join(' ').toLowerCase();
+            
+            return text.includes('conversion alternative') ||
+                   text.includes('document pdf') ||
+                   text.includes('non extrait') ||
+                   text.includes('pdf - conversion') ||
+                   text.includes('erreur conversion');
+        }
+
+        function cleanupData(data) {
+            if (!data || !data.invoices) return data;
+
+            const cleaned = JSON.parse(JSON.stringify(data)); // Deep clone
+            
+            // Nettoyer les factures
+            cleaned.invoices.forEach(invoice => {
+                // Filtrer les produits erronés
+                invoice.products = invoice.products.filter(product => !isConversionError(product));
+                
+                // Recalculer le montant de la facture
+                invoice.amount = invoice.products.reduce((sum, p) => sum + (p.totalPrice || 0), 0);
+                invoice.potential = invoice.amount * 1.15;
+            });
+
+            // Supprimer les factures vides (sans produits valides)
+            cleaned.invoices = cleaned.invoices.filter(invoice => invoice.products.length > 0);
+
+            // Nettoyer les produits concurrents
+            if (cleaned.competitorProducts) {
+                cleaned.competitorProducts = cleaned.competitorProducts.filter(product => 
+                    !isConversionError(product)
+                );
+            }
+
+            // Nettoyer les opportunités
+            if (cleaned.opportunities) {
+                cleaned.opportunities = cleaned.opportunities.filter(opp => 
+                    !isConversionError({ name: opp.title })
+                );
+            }
+
+            // Nettoyer les plans de reconquête
+            if (cleaned.reconquestPlans) {
+                cleaned.reconquestPlans = cleaned.reconquestPlans.filter(plan => 
+                    !isConversionError({ name: plan.clientName || '' })
+                );
+            }
+
+            // Remettre à zéro les stats si nécessaire
+            if (cleaned.invoices.length === 0) {
+                cleaned.stats = {
+                    invoicesAnalyzed: { value: 0, trend: 0, trendDirection: 'up' },
+                    clientsIdentified: { value: 0, trend: 0, trendDirection: 'up' },
+                    businessPotential: { value: 0, trend: 0, trendDirection: 'up' }
+                };
+                cleaned.competitorProducts = [];
+                cleaned.opportunities = [];
+                cleaned.reconquestPlans = [];
+                cleaned.reconquestSummary = null;
+            }
+
+            return cleaned;
+        }
+
+        function previewCleanup() {
+            const data = getStoredData();
+            if (!data) return;
+
+            const cleaned = cleanupData(data);
+            
+            // Afficher avant/après
+            document.getElementById('preview').style.display = 'grid';
+            
+            // Statistiques pour comparaison
+            const beforeStats = {
+                invoices: data.invoices.length,
+                products: data.invoices.reduce((sum, inv) => sum + inv.products.length, 0),
+                errorProducts: 0
+            };
+            
+            const afterStats = {
+                invoices: cleaned.invoices.length,
+                products: cleaned.invoices.reduce((sum, inv) => sum + inv.products.length, 0),
+                errorProducts: 0
+            };
+
+            data.invoices.forEach(invoice => {
+                invoice.products.forEach(product => {
+                    if (product.designation && product.designation.includes('conversion alternative')) {
+                        beforeStats.errorProducts++;
+                    }
+                });
+            });
+
+            document.getElementById('beforeData').textContent = JSON.stringify(beforeStats, null, 2);
+            document.getElementById('afterData').textContent = JSON.stringify({
+                ...afterStats,
+                productsRemoved: beforeStats.products - afterStats.products
+            }, null, 2);
+        }
+
+        function cleanData() {
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir nettoyer les erreurs de conversion?\n\nCette action est irréversible!')) {
+                return;
+            }
+
+            const rawData = localStorage.getItem(STORAGE_KEY);
+            if (!rawData) return;
+
+            // Sauvegarder l'original
+            const backup = 'soprema-backup-' + new Date().toISOString();
+            localStorage.setItem(backup, rawData);
+
+            // Nettoyer les données
+            const parsed = JSON.parse(rawData);
+            const data = parsed.state || parsed;
+            const cleaned = cleanupData(data);
+
+            // Sauvegarder les données nettoyées
+            if (parsed.state) {
+                parsed.state = cleaned;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+            } else {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+            }
+
+            document.getElementById('result').innerHTML = 
+                `<div class="success">
+                    ✅ Nettoyage terminé!<br>
+                    Une sauvegarde a été créée: ${backup}<br>
+                    <strong>Rechargez l'application pour voir les changements.</strong>
+                </div>`;
+
+            // Réanalyser
+            setTimeout(analyzeData, 1000);
+        }
+
+        function exportBackup() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (!data) return;
+
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `soprema-backup-${new Date().toISOString()}.json`;
+            a.click();
+        }
+
+        // Analyser au chargement
+        window.onload = () => {
+            analyzeData();
+        };
+    </script>
+</body>
+</html>

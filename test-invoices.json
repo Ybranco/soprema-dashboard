@@ -1,0 +1,178 @@
+[
+  {
+    "id": "test-1",
+    "number": "FA-2024-001",
+    "date": "2024-01-15",
+    "amount": 10000,
+    "potential": 11500,
+    "client": {
+      "name": "CLIENT TEST A - GROS CONCURRENT",
+      "address": "123 rue de Paris, 75001 Paris"
+    },
+    "distributor": {
+      "name": "Distributeur A",
+      "agency": "Agence Paris"
+    },
+    "products": [
+      {
+        "designation": "Membrane SOPREMA",
+        "quantity": 100,
+        "unitPrice": 40,
+        "totalPrice": 4000,
+        "isCompetitor": false,
+        "type": "soprema"
+      },
+      {
+        "designation": "Membrane IKO Premium",
+        "quantity": 100,
+        "unitPrice": 60,
+        "totalPrice": 6000,
+        "isCompetitor": true,
+        "type": "competitor",
+        "brand": "IKO",
+        "competitor": {
+          "brand": "IKO",
+          "category": "Étanchéité"
+        }
+      }
+    ],
+    "region": "Île-de-France",
+    "status": "analyzed"
+  },
+  {
+    "id": "test-2",
+    "number": "FA-2024-002",
+    "date": "2024-01-20",
+    "amount": 3000,
+    "potential": 3450,
+    "client": {
+      "name": "CLIENT TEST B - MULTI FACTURES",
+      "address": "456 avenue Lyon, 69001 Lyon"
+    },
+    "distributor": {
+      "name": "Distributeur B",
+      "agency": "Agence Lyon"
+    },
+    "products": [
+      {
+        "designation": "Isolant KNAUF",
+        "quantity": 50,
+        "unitPrice": 20,
+        "totalPrice": 1000,
+        "isCompetitor": true,
+        "type": "competitor",
+        "brand": "KNAUF",
+        "competitor": {
+          "brand": "KNAUF",
+          "category": "Isolation"
+        }
+      }
+    ],
+    "region": "Auvergne-Rhône-Alpes",
+    "status": "analyzed"
+  },
+  {
+    "id": "test-3",
+    "number": "FA-2024-003",
+    "date": "2024-02-20",
+    "amount": 3000,
+    "potential": 3450,
+    "client": {
+      "name": "CLIENT TEST B - MULTI FACTURES",
+      "address": "456 avenue Lyon, 69001 Lyon"
+    },
+    "distributor": {
+      "name": "Distributeur B",
+      "agency": "Agence Lyon"
+    },
+    "products": [
+      {
+        "designation": "Membrane ISOVER",
+        "quantity": 50,
+        "unitPrice": 20,
+        "totalPrice": 1000,
+        "isCompetitor": true,
+        "type": "competitor",
+        "brand": "ISOVER",
+        "competitor": {
+          "brand": "ISOVER",
+          "category": "Isolation"
+        }
+      }
+    ],
+    "region": "Auvergne-Rhône-Alpes",
+    "status": "analyzed"
+  },
+  {
+    "id": "test-4",
+    "number": "FA-2024-004",
+    "date": "2024-03-20",
+    "amount": 3000,
+    "potential": 3450,
+    "client": {
+      "name": "CLIENT TEST B - MULTI FACTURES",
+      "address": "456 avenue Lyon, 69001 Lyon"
+    },
+    "distributor": {
+      "name": "Distributeur B",
+      "agency": "Agence Lyon"
+    },
+    "products": [
+      {
+        "designation": "Produit ROCKWOOL",
+        "quantity": 50,
+        "unitPrice": 20,
+        "totalPrice": 1000,
+        "isCompetitor": true,
+        "type": "competitor",
+        "brand": "ROCKWOOL",
+        "competitor": {
+          "brand": "ROCKWOOL",
+          "category": "Isolation"
+        }
+      }
+    ],
+    "region": "Auvergne-Rhône-Alpes",
+    "status": "analyzed"
+  },
+  {
+    "id": "test-5",
+    "number": "FA-2024-005",
+    "date": "2024-01-25",
+    "amount": 5000,
+    "potential": 5750,
+    "client": {
+      "name": "CLIENT TEST C - PEU CONCURRENT",
+      "address": "789 rue Marseille, 13001 Marseille"
+    },
+    "distributor": {
+      "name": "Distributeur C",
+      "agency": "Agence Marseille"
+    },
+    "products": [
+      {
+        "designation": "Produit SOPREMA Premium",
+        "quantity": 100,
+        "unitPrice": 45,
+        "totalPrice": 4500,
+        "isCompetitor": false,
+        "type": "soprema"
+      },
+      {
+        "designation": "Accessoire URSA",
+        "quantity": 10,
+        "unitPrice": 50,
+        "totalPrice": 500,
+        "isCompetitor": true,
+        "type": "competitor",
+        "brand": "URSA",
+        "competitor": {
+          "brand": "URSA",
+          "category": "Accessoires"
+        }
+      }
+    ],
+    "region": "Provence-Alpes-Côte d'Azur",
+    "status": "analyzed"
+  }
+]

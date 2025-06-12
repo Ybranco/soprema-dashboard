@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inspect Local Storage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .error-product {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .invoice {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .product {
+            margin-left: 20px;
+            padding: 5px;
+            background-color: #fff;
+            border-left: 3px solid #ddd;
+            margin-top: 5px;
+        }
+        .competitor {
+            border-left-color: #f66;
+        }
+        .conversion-error {
+            background-color: #fee;
+            border-left-color: #f00;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .warning {
+            background-color: #ffeaa7;
+            border: 1px solid #fdcb6e;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Local Storage Inspector - Soprema Dashboard</h1>
+        
+        <div id="results"></div>
+        
+        <button onclick="inspectStorage()">Inspect Storage</button>
+        <button onclick="clearConversionErrors()">Clear Conversion Errors</button>
+        <button onclick="clearAllData()">Clear All Data</button>
+    </div>
+
+    <script>
+        function inspectStorage() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            // Get the stored data
+            const storageKey = 'soprema-dashboard-v2-storage';
+            const storedData = localStorage.getItem(storageKey);
+            
+            if (!storedData) {
+                resultsDiv.innerHTML = '<p>No data found in localStorage</p>';
+                return;
+            }
+            
+            try {
+                const data = JSON.parse(storedData);
+                const state = data.state;
+                
+                let html = '<h2>Storage Analysis</h2>';
+                
+                // Check for invoices
+                if (state.invoices && state.invoices.length > 0) {
+                    html += `<p>Total invoices: ${state.invoices.length}</p>`;
+                    
+                    // Find invoices with conversion errors
+                    let errorCount = 0;
+                    let conversionErrorProducts = [];
+                    
+                    state.invoices.forEach(invoice => {
+                        let hasError = false;
+                        invoice.products.forEach(product => {
+                            if (product.designation && product.designation.toLowerCase().includes('conversion alternative')) {
+                                hasError = true;
+                                errorCount++;
+                                conversionErrorProducts.push({
+                                    invoice: invoice.number,
+                                    client: invoice.client.name,
+                                    product: product,
+                                    amount: product.totalPrice
+                                });
+                            }
+                        });
+                    });
+                    
+                    if (errorCount > 0) {
+                        html += `<div class="warning">
+                            <h3>⚠️ Found ${errorCount} conversion error products!</h3>
+                            <p>These are PDF conversion errors being treated as products:</p>
+                        </div>`;
+                        
+                        conversionErrorProducts.forEach(item => {
+                            html += `<div class="error-product">
+                                <strong>Invoice:</strong> ${item.invoice}<br>
+                                <strong>Client:</strong> ${item.client}<br>
+                                <strong>Product:</strong> ${item.product.designation}<br>
+                                <strong>Amount:</strong> ${item.amount}€<br>
+                                <strong>Is Competitor:</strong> ${item.product.isCompetitor ? 'YES' : 'NO'}
+                            </div>`;
+                        });
+                    }
+                    
+                    // Show specific invoice with 12,289.54€
+                    const targetAmount = 12289.54;
+                    state.invoices.forEach(invoice => {
+                        invoice.products.forEach(product => {
+                            if (Math.abs(product.totalPrice - targetAmount) < 0.01) {
+                                html += `<div class="error-product">
+                                    <h4>Found product with amount 12,289.54€:</h4>
+                                    <strong>Invoice:</strong> ${invoice.number}<br>
+                                    <strong>Client:</strong> ${invoice.client.name}<br>
+                                    <strong>Product:</strong> ${product.designation}<br>
+                                    <strong>Reference:</strong> ${product.reference || 'N/A'}<br>
+                                    <strong>Type:</strong> ${product.type}<br>
+                                    <strong>Is Competitor:</strong> ${product.isCompetitor ? 'YES' : 'NO'}
+                                </div>`;
+                            }
+                        });
+                    });
+                }
+                
+                // Show competitor products
+                if (state.competitorProducts && state.competitorProducts.length > 0) {
+                    html += '<h3>Competitor Products Summary:</h3>';
+                    state.competitorProducts.forEach(cp => {
+                        html += `<p>${cp.name}: ${cp.amount}€ (${cp.percentage}%)</p>`;
+                    });
+                }
+                
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error parsing storage data: ${error.message}</p>`;
+            }
+        }
+        
+        function clearConversionErrors() {
+            const storageKey = 'soprema-dashboard-v2-storage';
+            const storedData = localStorage.getItem(storageKey);
+            
+            if (!storedData) {
+                alert('No data found in localStorage');
+                return;
+            }
+            
+            try {
+                const data = JSON.parse(storedData);
+                const state = data.state;
+                
+                if (state.invoices) {
+                    // Filter out conversion error products from all invoices
+                    state.invoices.forEach(invoice => {
+                        invoice.products = invoice.products.filter(product => {
+                            const hasConversionError = 
+                                (product.designation && product.designation.toLowerCase().includes('conversion alternative')) ||
+                                (product.reference && product.reference.toLowerCase().includes('conversion alternative'));
+                            
+                            if (hasConversionError) {
+                                console.log('Removing conversion error product:', product);
+                            }
+                            
+                            return !hasConversionError;
+                        });
+                    });
+                    
+                    // Save the cleaned data back
+                    localStorage.setItem(storageKey, JSON.stringify(data));
+                    alert('Conversion errors cleared! Please refresh the page.');
+                    inspectStorage();
+                }
+            } catch (error) {
+                alert('Error cleaning data: ' + error.message);
+            }
+        }
+        
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all stored data?')) {
+                localStorage.removeItem('soprema-dashboard-v2-storage');
+                alert('All data cleared!');
+                inspectStorage();
+            }
+        }
+        
+        // Auto-inspect on load
+        window.onload = inspectStorage;
+    </script>
+</body>
+</html>

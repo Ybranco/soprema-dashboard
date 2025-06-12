@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Export Store Data</title>
+</head>
+<body>
+    <h1>Export Store Data pour Debug</h1>
+    <button onclick="exportData()">Exporter les factures du store</button>
+    <pre id="output"></pre>
+
+    <script>
+        function exportData() {
+            // Accéder au store Zustand depuis la console
+            if (window.useDashboardStore) {
+                const state = window.useDashboardStore.getState();
+                const data = {
+                    invoices: state.invoices,
+                    count: state.invoices.length,
+                    timestamp: new Date().toISOString()
+                };
+                
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+                
+                // Aussi dans la console
+                console.log('📊 DONNÉES DU STORE:', data);
+                
+                // Analyse rapide
+                let clientsWithCompetitors = 0;
+                let totalCompetitorAmount = 0;
+                
+                data.invoices.forEach(invoice => {
+                    if (invoice.products) {
+                        const competitors = invoice.products.filter(p => 
+                            p.type === 'competitor' || p.isCompetitor === true || p.isCompetitor === 'true'
+                        );
+                        if (competitors.length > 0) {
+                            clientsWithCompetitors++;
+                            const competitorSum = competitors.reduce((sum, p) => sum + (p.totalPrice || 0), 0);
+                            totalCompetitorAmount += competitorSum;
+                            console.log(`✅ ${invoice.client?.name}: ${competitorSum}€ concurrent`);
+                        }
+                    }
+                });
+                
+                console.log(`📊 RÉSUMÉ: ${clientsWithCompetitors} clients avec concurrents, ${totalCompetitorAmount}€ total`);
+                
+            } else {
+                alert('Store non trouvé - Assurez-vous d\'être sur la page de l\'application');
+            }
+        }
+        
+        // Auto-export au chargement si le store est disponible
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (window.useDashboardStore) {
+                    exportData();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
