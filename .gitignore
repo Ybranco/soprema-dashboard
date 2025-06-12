@@ -33,3 +33,4 @@ temp/
 # API files
 vercel.json
 api/
+.vercel
