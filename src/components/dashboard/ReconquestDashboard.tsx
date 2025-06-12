@@ -107,7 +107,48 @@ export const ReconquestDashboard: React.FC = () => {
       const invoicesToProcess = relevantInvoices.length > 0 ? relevantInvoices : invoices;
       console.log(`📤 Envoi de ${invoicesToProcess.length} factures à l'API pour analyse approfondie...`);
 
-      const result = await reconquestService.generateReconquestPlans(invoicesToProcess);
+      // Pour la démo, générer les plans localement si on n'est pas en localhost
+      let result;
+      if (window.location.hostname === 'localhost') {
+        result = await reconquestService.generateReconquestPlans(invoicesToProcess);
+      } else {
+        // Mode démo : générer des plans localement
+        const demoPlans = allClientsAnalysis
+          .filter(client => client.competitorAmount >= 5000)
+          .map((client, index) => ({
+            id: `DEMO-PLAN-${index + 1}`,
+            clientName: client.clientName,
+            totalCompetitorAmount: client.competitorAmount,
+            totalAmount: client.totalAmount,
+            conversionPotential: client.competitorAmount * 0.7,
+            priority: client.competitorAmount > 15000 ? 'high' : client.competitorAmount > 8000 ? 'medium' : 'low',
+            analysis: {
+              competitorAmount: client.competitorAmount,
+              sopremaAmount: client.sopremaAmount,
+              sopremaShare: (client.sopremaAmount / client.totalAmount) * 100,
+              topCompetitorBrands: client.topCompetitorBrands || []
+            },
+            reconquestStrategy: {
+              targetProducts: [],
+              suggestedActions: [
+                { description: 'Proposer une démonstration des produits SOPREMA équivalents', timing: 'Sous 2 semaines' },
+                { description: 'Offrir une formation technique sur les avantages SOPREMA', timing: 'Sous 1 mois' }
+              ],
+              estimatedSuccessRate: 70
+            }
+          }));
+        
+        result = {
+          plans: demoPlans,
+          summary: {
+            totalPlans: demoPlans.length,
+            totalPotential: demoPlans.reduce((sum, p) => sum + p.conversionPotential, 0),
+            plansGenerated: demoPlans.length,
+            significantCustomers: demoPlans.length,
+            totalCustomers: new Set(invoices.map(inv => inv.client?.name)).size
+          }
+        };
+      }
       
       setReconquestPlans(result.plans);
       
