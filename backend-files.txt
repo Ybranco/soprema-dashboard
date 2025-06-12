@@ -1,0 +1,19 @@
+FICHIERS NÉCESSAIRES POUR LE BACKEND:
+
+1. server.js
+2. package.json (version backend)
+3. Tous les fichiers .js dans le dossier racine:
+   - pdf-text-extractor-pdf2json.js
+   - ilovepdf-wrapper.js
+   - HYBRID_SCORING_METHOD.js
+   - Et tous les autres fichiers .js
+
+4. Le dossier 'data' avec tous ses fichiers
+
+5. .env (vos clés API)
+
+INSTRUCTIONS:
+1. Créez un nouveau dossier sur votre bureau appelé "soprema-backend"
+2. Copiez tous ces fichiers dedans
+3. Créez un nouveau repo GitHub appelé "soprema-backend"
+4. Poussez ces fichiers sur ce nouveau repo

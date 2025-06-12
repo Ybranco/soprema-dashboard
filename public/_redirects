@@ -1,2 +1,2 @@
-/api/*  https://soprema-backend.herokuapp.com/api/:splat  200
+/api/*  https://YOUR-RAILWAY-URL.railway.app/api/:splat  200
 /*      /index.html                                        200

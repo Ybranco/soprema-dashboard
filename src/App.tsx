@@ -9,6 +9,7 @@ import { ReconquestDashboard } from './components/dashboard/ReconquestDashboard'
 import { CompetitorProductsView } from './components/dashboard/CompetitorProductsView';
 import { InvoiceModal } from './components/invoices/InvoiceModal';
 import { useDashboardStore } from './store/dashboardStore';
+import { generateDemoInvoices } from './utils/demoData';
 
 function App() {
   const { 
@@ -26,6 +27,13 @@ function App() {
   useEffect(() => {
     // Vérifier si on a des données persistées
     const storageInfo = getStorageInfo();
+    
+    // Si on est sur Netlify et qu'il n'y a pas de données, charger la démo
+    if (window.location.hostname !== 'localhost' && invoices.length === 0) {
+      const demoInvoices = generateDemoInvoices();
+      setInvoices(demoInvoices);
+      console.log('📊 Données de démonstration chargées:', demoInvoices.length, 'factures');
+    }
     
     if (invoices.length > 0) {
       setIsDataLoaded(true);
