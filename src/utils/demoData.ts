@@ -1,34 +1,75 @@
 import { Invoice, Product } from '../types/invoice';
 
+// Fonctions utilitaires pour la France
+const generateFrenchPostalCode = (city: string): string => {
+  const cityPostalCodes: Record<string, string> = {
+    'Strasbourg': '67000',
+    'Lyon': '69000',
+    'Marseille': '13000',
+    'Toulouse': '31000',
+    'Nantes': '44000',
+    'Bordeaux': '33000',
+    'Lille': '59000',
+    'Mulhouse': '68100',
+    'Nice': '06000',
+    'Rennes': '35000'
+  };
+  return cityPostalCodes[city] || '75000';
+};
+
+const getFrenchCityCoordinates = (city: string): { lat: number; lng: number } => {
+  const cityCoords: Record<string, { lat: number; lng: number }> = {
+    'Strasbourg': { lat: 48.5734, lng: 7.7521 },
+    'Lyon': { lat: 45.7640, lng: 4.8357 },
+    'Marseille': { lat: 43.2965, lng: 5.3698 },
+    'Toulouse': { lat: 43.6047, lng: 1.4442 },
+    'Nantes': { lat: 47.2184, lng: -1.5536 },
+    'Bordeaux': { lat: 44.8378, lng: -0.5792 },
+    'Lille': { lat: 50.6292, lng: 3.0573 },
+    'Mulhouse': { lat: 47.7508, lng: 7.3359 },
+    'Nice': { lat: 43.7102, lng: 7.2620 },
+    'Rennes': { lat: 48.1173, lng: -1.6778 }
+  };
+  return cityCoords[city] || { lat: 48.8566, lng: 2.3522 }; // Paris par défaut
+};
+
 // Générateur de données de démonstration
 export const generateDemoInvoices = (): Invoice[] => {
   const clients = [
-    { name: 'Construction Dubois Inc.', city: 'Montréal', region: 'QC' },
-    { name: 'Toitures Modernes Ltée', city: 'Québec', region: 'QC' },
-    { name: 'Bâtiments Pro 2000', city: 'Laval', region: 'QC' },
-    { name: 'Rénovations Expert Plus', city: 'Sherbrooke', region: 'QC' },
-    { name: 'Construction Nouvelle Ère', city: 'Gatineau', region: 'QC' },
-    { name: 'Toitures Excellence Inc.', city: 'Trois-Rivières', region: 'QC' },
-    { name: 'Bâtisseurs Modernes', city: 'Longueuil', region: 'QC' },
-    { name: 'Construction Alpha', city: 'Drummondville', region: 'QC' }
+    { name: 'Art Actif SAS', city: 'Strasbourg', region: 'Grand Est' },
+    { name: 'Toitures Modernes SARL', city: 'Lyon', region: 'Auvergne-Rhône-Alpes' },
+    { name: 'Bâtiment Pro 2000', city: 'Marseille', region: 'Provence-Alpes-Côte d\'Azur' },
+    { name: 'Construction Excellence SAS', city: 'Toulouse', region: 'Occitanie' },
+    { name: 'U-Therm Isolation', city: 'Nantes', region: 'Pays de la Loire' },
+    { name: 'Étanchéité Plus', city: 'Bordeaux', region: 'Nouvelle-Aquitaine' },
+    { name: 'Couverture Moderne', city: 'Lille', region: 'Hauts-de-France' },
+    { name: 'Bâtisseurs Alsaciens', city: 'Mulhouse', region: 'Grand Est' },
+    { name: 'Toitures du Sud', city: 'Nice', region: 'Provence-Alpes-Côte d\'Azur' },
+    { name: 'Isolation Expert', city: 'Rennes', region: 'Bretagne' }
   ];
 
   const sopremaProducts: Partial<Product>[] = [
     { designation: 'SOPRALENE FLAM 180', unitPrice: 85.50, type: 'soprema', isSoprema: true },
     { designation: 'SOPRASEAL STICK 1100T', unitPrice: 125.00, type: 'soprema', isSoprema: true },
-    { designation: 'ELASTOPHENE FLAM', unitPrice: 95.75, type: 'soprema', isSoprema: true },
-    { designation: 'SOPRAFIX STICK', unitPrice: 110.25, type: 'soprema', isSoprema: true },
-    { designation: 'COLVENT PERFORÉ', unitPrice: 45.50, type: 'soprema', isSoprema: true },
-    { designation: 'SOPRAMASTIC ALU', unitPrice: 65.00, type: 'soprema', isSoprema: true }
+    { designation: 'ELASTOPHENE FLAM 25', unitPrice: 88.00, type: 'soprema', isSoprema: true },
+    { designation: 'ALSAN FLASHING', unitPrice: 125.00, type: 'soprema', isSoprema: true },
+    { designation: 'SOPRASTAR FLAM', unitPrice: 95.75, type: 'soprema', isSoprema: true },
+    { designation: 'COLPHENE 1500', unitPrice: 92.25, type: 'soprema', isSoprema: true },
+    { designation: 'SOPRAFIX BASE', unitPrice: 75.50, type: 'soprema', isSoprema: true },
+    { designation: 'SOPRALAST 50 TV ALU', unitPrice: 110.50, type: 'soprema', isSoprema: true },
+    { designation: 'SOPRASOLIN', unitPrice: 55.25, type: 'soprema', isSoprema: true },
+    { designation: 'PAVATEX ISOLANT', unitPrice: 45.00, type: 'soprema', isSoprema: true }
   ];
 
   const competitorProducts: Partial<Product>[] = [
-    { designation: 'IKO MODIFLEX MP-180', unitPrice: 78.00, type: 'competitor', isCompetitor: true, brand: 'IKO' },
-    { designation: 'TREMCO ROOFING GRANULES', unitPrice: 55.50, type: 'competitor', isCompetitor: true, brand: 'TREMCO' },
-    { designation: 'FIRESTONE RUBBERGARD', unitPrice: 92.00, type: 'competitor', isCompetitor: true, brand: 'FIRESTONE' },
-    { designation: 'GAF RUBEROID TORCH', unitPrice: 82.50, type: 'competitor', isCompetitor: true, brand: 'GAF' },
-    { designation: 'CARLISLE SURE-SEAL', unitPrice: 88.75, type: 'competitor', isCompetitor: true, brand: 'CARLISLE' },
-    { designation: 'JOHNS MANVILLE EPDM', unitPrice: 95.00, type: 'competitor', isCompetitor: true, brand: 'JOHNS MANVILLE' }
+    { designation: 'IKO ARMOURBASE STICK', unitPrice: 78.50, type: 'competitor', isCompetitor: true, brand: 'IKO' },
+    { designation: 'FIRESTONE RUBBERGARD EPDM', unitPrice: 95.00, type: 'competitor', isCompetitor: true, brand: 'FIRESTONE' },
+    { designation: 'TREMCO POWERply BASE', unitPrice: 82.00, type: 'competitor', isCompetitor: true, brand: 'TREMCO' },
+    { designation: 'GAF LIBERTY BASE', unitPrice: 88.75, type: 'competitor', isCompetitor: true, brand: 'GAF' },
+    { designation: 'ROCKWOOL HARDROCK', unitPrice: 38.50, type: 'competitor', isCompetitor: true, brand: 'ROCKWOOL' },
+    { designation: 'SIPLAST PARAFOR', unitPrice: 91.20, type: 'competitor', isCompetitor: true, brand: 'SIPLAST' },
+    { designation: 'AXTER HYRENE 25', unitPrice: 86.40, type: 'competitor', isCompetitor: true, brand: 'AXTER' },
+    { designation: 'DERBIGUM SP4', unitPrice: 79.90, type: 'competitor', isCompetitor: true, brand: 'DERBIGUM' }
   ];
 
   const invoices: Invoice[] = [];
@@ -97,14 +138,11 @@ export const generateDemoInvoices = (): Invoice[] => {
       uploadDate: new Date().toISOString(),
       client: {
         name: client.name,
-        address: `${Math.floor(Math.random() * 999) + 1} rue Principale`,
+        address: `${Math.floor(Math.random() * 999) + 1} ${['rue', 'avenue', 'boulevard'][Math.floor(Math.random() * 3)]} ${['de la République', 'Victor Hugo', 'Jean Jaurès', 'du Général de Gaulle'][Math.floor(Math.random() * 4)]}`,
         city: client.city,
-        postalCode: `H${Math.floor(Math.random() * 9)}K ${Math.floor(Math.random() * 9)}L${Math.floor(Math.random() * 9)}`,
+        postalCode: generateFrenchPostalCode(client.city),
         region: client.region,
-        location: {
-          lat: 45.5 + (Math.random() - 0.5) * 2,
-          lng: -73.6 + (Math.random() - 0.5) * 2
-        }
+        location: getFrenchCityCoordinates(client.city)
       },
       products,
       subtotal: totalAmount,
